@@ -1,0 +1,52 @@
+# Nama workflow yang akan muncul di tab "Actions"
+name: Deploy Website to GitHub Pages
+
+# Menentukan kapan workflow ini akan berjalan
+on:
+  # Memicu workflow pada saat ada 'push' ke repository
+  push:
+    # Hanya untuk branch 'main'
+    branches:
+      - main
+    # HANYA jika file 'index.html' berubah. Ini adalah syarat kunci!
+    paths:
+      - 'index.html'
+
+# Izin yang dibutuhkan oleh workflow untuk bisa deploy ke Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Daftar pekerjaan (jobs) yang akan dijalankan
+jobs:
+  # Hanya ada satu job bernama 'deploy'
+  deploy:
+    # Menentukan lingkungan untuk deploy ke GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Menjalankan job ini di mesin virtual Ubuntu versi terbaru
+    runs-on: ubuntu-latest
+    # Langkah-langkah yang akan dieksekusi
+    steps:
+      # Langkah 1: Mengunduh kode dari repository
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Langkah 2: Menyiapkan lingkungan GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # Langkah 3: Mengunggah artefak website (file-file website kita)
+      # Action ini akan mengambil file dari 'path' dan menyiapkannya untuk deploy
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Unggah semua file dari direktori root proyek
+          path: '.'
+
+      # Langkah 4: Melakukan deploy ke GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
